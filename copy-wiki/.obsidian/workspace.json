@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "wiki/voice-rules.md",
+                "file": "raw/voice-personal.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "voice-rules"
+              "title": "voice-personal"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "wiki/voice-rules.md",
+                "file": "raw/voice-personal.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "voice-rules 의 백링크"
+              "title": "voice-personal 의 백링크"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "wiki/voice-rules.md",
+                "file": "raw/voice-personal.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "voice-rules 의 나가는 링크"
+              "title": "voice-personal 의 나가는 링크"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "wiki/voice-rules.md",
+                "file": "raw/voice-personal.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "voice-rules 의 개요"
+              "title": "voice-personal 의 개요"
             }
           }
         ]
@@ -185,10 +185,12 @@
   },
   "active": "e12c7a36a67c9273",
   "lastOpenFiles": [
+    "raw/voice-portfolio.md",
+    "raw/voice-personal.md",
+    "CLAUDE.md",
+    "wiki/voice-rules.md",
     "wiki/log.md",
     "wiki/index.md",
-    "raw/voice-personal.md",
-    "raw/references.md",
-    "raw/voice-portfolio.md"
+    "raw/references.md"
   ]
 }
