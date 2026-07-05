@@ -10,7 +10,9 @@ from urllib.parse import urlparse
 
 PORT   = 3301
 FOLDER = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(FOLDER)  # 포트폴리오/ 의 상위 = git 저장소 루트
 CLAUDE = os.path.expanduser('~/.local/bin/claude')  # claude CLI 경로
+GIT    = '/usr/bin/git'
 
 PROMPT_TEMPLATE = """{image_refs}
 
@@ -43,22 +45,60 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200); self._cors(); self.end_headers()
 
     def do_POST(self):
-        if urlparse(self.path).path != '/generate':
-            self.send_response(404); self.end_headers(); return
+        path = urlparse(self.path).path
+        length = int(self.headers.get('Content-Length', 0))
+        body = json.loads(self.rfile.read(length)) if length else {}
 
-        body = json.loads(self.rfile.read(int(self.headers.get('Content-Length', 0))))
+        if path == '/generate':
+            try:
+                result = generate(body)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json'); self._cors(); self.end_headers()
+                self.wfile.write(json.dumps(result, ensure_ascii=False).encode())
+                print(f'  ✓ {body.get("folderName")} 생성 완료')
+            except Exception as e:
+                print(f'  ✗ 오류: {e}')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json'); self._cors(); self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}, ensure_ascii=False).encode())
+        elif path == '/publish':
+            try:
+                result = publish()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json'); self._cors(); self.end_headers()
+                self.wfile.write(json.dumps(result, ensure_ascii=False).encode())
+                print(f'  ✓ 사이트에 반영 완료')
+            except Exception as e:
+                print(f'  ✗ publish 오류: {e}')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json'); self._cors(); self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}, ensure_ascii=False).encode())
+        else:
+            self.send_response(404); self.end_headers()
 
-        try:
-            result = generate(body)
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json'); self._cors(); self.end_headers()
-            self.wfile.write(json.dumps(result, ensure_ascii=False).encode())
-            print(f'  ✓ {body.get("folderName")} 생성 완료')
-        except Exception as e:
-            print(f'  ✗ 오류: {e}')
-            self.send_response(500)
-            self.send_header('Content-Type', 'application/json'); self._cors(); self.end_headers()
-            self.wfile.write(json.dumps({'error': str(e)}, ensure_ascii=False).encode())
+
+def publish():
+    subprocess.run([GIT, 'add', '-A'], cwd=REPO_ROOT, check=True, capture_output=True, text=True)
+
+    status = subprocess.run(
+        [GIT, 'status', '--porcelain'], cwd=REPO_ROOT, capture_output=True, text=True
+    ).stdout
+
+    if not status.strip():
+        return {'pushed': False, 'message': '변경사항이 없습니다.'}
+
+    commit = subprocess.run(
+        [GIT, 'commit', '-m', 'Publish from builder'],
+        cwd=REPO_ROOT, capture_output=True, text=True
+    )
+    if commit.returncode != 0:
+        raise ValueError(commit.stderr.strip() or commit.stdout.strip() or 'git commit 실패')
+
+    push = subprocess.run([GIT, 'push'], cwd=REPO_ROOT, capture_output=True, text=True)
+    if push.returncode != 0:
+        raise ValueError(push.stderr.strip() or 'git push 실패')
+
+    return {'pushed': True}
 
 
 def generate(data):

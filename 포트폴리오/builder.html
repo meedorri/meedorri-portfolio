@@ -566,9 +566,24 @@ document.getElementById('save-btn').onclick = async () => {
   if (!rootHandle) return;
   try {
     await persistToSite();
-    alert('저장 완료! index.html을 새로고침(⌘R)하세요.');
+    try {
+      await pushToGitHub();
+      alert('저장 및 사이트 반영 완료!');
+    } catch(e) {
+      alert('로컬 저장은 완료됐지만 사이트에는 아직 반영되지 않았습니다.\n\n터미널에서 로컬 서버가 켜져있는지 확인하세요:\n  ! cd ~/Desktop/meedorri/포트폴리오 && ./start.sh\n\n오류: '+e.message);
+    }
   } catch(e) { alert('저장 오류: '+e.message); }
 };
+
+// 로컬 서버(generate_server.py)를 통해 git add/commit/push 실행
+async function pushToGitHub() {
+  const resp = await fetch('http://localhost:3301/publish', { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
+  if (!resp.ok) {
+    const e = await resp.json().catch(()=>({}));
+    throw new Error(e.error || `오류 ${resp.status}`);
+  }
+  return resp.json();
+}
 
 // 프로젝트 데이터 + index.html(공개된 프로젝트만)을 함께 기록
 async function persistToSite() {
@@ -599,6 +614,11 @@ async function togglePublish(p) {
   try {
     await persistToSite();
     renderProjList();
+    try {
+      await pushToGitHub();
+    } catch(e) {
+      alert('로컬에는 저장됐지만 사이트에는 아직 반영되지 않았습니다.\n\n터미널에서 로컬 서버가 켜져있는지 확인하세요:\n  ! cd ~/Desktop/meedorri/포트폴리오 && ./start.sh\n\n오류: '+e.message);
+    }
   } catch(e) {
     p.published = prevPublished;
     updatePublishBtn(p);
