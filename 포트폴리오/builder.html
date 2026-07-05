@@ -73,6 +73,26 @@ html,body{height:100%;background:#fff;color:#000;font-family:'Inter','Apple SD G
 .gen-btn.loading{background:#555}
 .gen-btn.done{background:#2a7a2a}
 
+/* generate direction panel */
+#gen-panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:500}
+#gen-panel-overlay.open{display:flex}
+.gen-panel{width:380px;max-height:86vh;overflow-y:auto;background:#fff;border-radius:3px;padding:22px}
+.gen-panel-title{font-size:12px;font-weight:600;margin-bottom:16px}
+.gen-panel-sec{margin-bottom:16px}
+.gen-panel-label{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:8px}
+.gen-opt-row{display:flex;flex-wrap:wrap;gap:6px}
+.gen-opt{padding:6px 11px;border:1px solid #d0d0d0;border-radius:20px;font-size:10.5px;cursor:pointer;color:#555;background:#fff}
+.gen-opt:hover{border-color:#000;color:#000}
+.gen-opt.active{background:#000;border-color:#000;color:#fff}
+#gen-note{width:100%;min-height:64px;padding:8px 10px;border:1px solid #e0e0e0;border-radius:2px;font-size:11px;font-family:inherit;resize:vertical;outline:none}
+#gen-note:focus{border-color:#000}
+#gen-note::placeholder{color:#ccc}
+.gen-panel-actions{display:flex;gap:8px;margin-top:20px}
+.gen-panel-cancel{flex:0 0 80px;padding:9px 0;background:none;border:1px solid #d0d0d0;border-radius:2px;font-size:11px;font-family:inherit;cursor:pointer;color:#555}
+.gen-panel-cancel:hover{border-color:#000;color:#000}
+.gen-panel-go{flex:1;padding:9px 0;background:#000;color:#fff;border:none;border-radius:2px;font-size:11px;font-family:inherit;cursor:pointer}
+.gen-panel-go:hover{opacity:.75}
+
 /* editor sections */
 .ed-sec{margin-bottom:26px}
 .ed-sec-title{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #e0e0e0}
@@ -186,6 +206,51 @@ textarea.field-input{min-height:88px;resize:vertical;line-height:1.7}
   </div>
 </div>
 
+</div>
+
+<!-- generate direction panel -->
+<div id="gen-panel-overlay">
+  <div class="gen-panel">
+    <div class="gen-panel-title">생성 방향 설정</div>
+
+    <div class="gen-panel-sec">
+      <div class="gen-panel-label">어투</div>
+      <div class="gen-opt-row" data-group="tone">
+        <div class="gen-opt" data-value="관찰자(1인칭 건조체)">관찰자(1인칭 건조체)</div>
+        <div class="gen-opt" data-value="3인칭">3인칭</div>
+        <div class="gen-opt" data-value="에세이">에세이</div>
+        <div class="gen-opt" data-value="인터뷰체">인터뷰체</div>
+      </div>
+    </div>
+
+    <div class="gen-panel-sec">
+      <div class="gen-panel-label">구조</div>
+      <div class="gen-opt-row" data-group="structure">
+        <div class="gen-opt" data-value="3막(맥락→접근→결과)">3막(맥락→접근→결과)</div>
+        <div class="gen-opt" data-value="비네트(장면별 단편)">비네트(장면별 단편)</div>
+        <div class="gen-opt" data-value="단일 흐름">단일 흐름</div>
+      </div>
+    </div>
+
+    <div class="gen-panel-sec">
+      <div class="gen-panel-label">길이</div>
+      <div class="gen-opt-row" data-group="length">
+        <div class="gen-opt" data-value="짧게">짧게</div>
+        <div class="gen-opt" data-value="중간">중간</div>
+        <div class="gen-opt" data-value="길게">길게</div>
+      </div>
+    </div>
+
+    <div class="gen-panel-sec">
+      <div class="gen-panel-label">방향 메모</div>
+      <textarea id="gen-note" placeholder="이번 글에서 강조할 것을 자유롭게 적어주세요 (선택)"></textarea>
+    </div>
+
+    <div class="gen-panel-actions">
+      <button class="gen-panel-cancel" id="gen-panel-cancel">취소</button>
+      <button class="gen-panel-go" id="gen-panel-go">생성하기</button>
+    </div>
+  </div>
 </div>
 
 <!-- init overlay -->
@@ -391,7 +456,7 @@ function renderEditor() {
   document.getElementById('add-meta-btn').onclick = () => { p.meta.push(['','']); renderMetaRows(p); renderPreview(); };
 
   // generate
-  document.getElementById('gen-btn').onclick = () => generateWithClaude(p);
+  document.getElementById('gen-btn').onclick = () => openGenPanel(p);
 
   // publish toggle
   document.getElementById('publish-btn').onclick = () => togglePublish(p);
@@ -527,9 +592,41 @@ function renderPreview() {
 }
 
 // ═══════════════════════════════════════════
+//  Generate direction panel
+// ═══════════════════════════════════════════
+const GEN_DEFAULTS = { tone: '관찰자(1인칭 건조체)', structure: '단일 흐름', length: '중간' };
+
+function openGenPanel(p) {
+  const overlay = document.getElementById('gen-panel-overlay');
+  overlay.querySelectorAll('.gen-opt-row').forEach(row => {
+    const group = row.dataset.group;
+    row.querySelectorAll('.gen-opt').forEach(opt => {
+      opt.classList.toggle('active', opt.dataset.value === GEN_DEFAULTS[group]);
+      opt.onclick = () => {
+        row.querySelectorAll('.gen-opt').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+      };
+    });
+  });
+  document.getElementById('gen-note').value = '';
+  overlay.classList.add('open');
+
+  document.getElementById('gen-panel-cancel').onclick = () => overlay.classList.remove('open');
+  document.getElementById('gen-panel-go').onclick = () => {
+    const settings = { note: document.getElementById('gen-note').value.trim() };
+    overlay.querySelectorAll('.gen-opt-row').forEach(row => {
+      const active = row.querySelector('.gen-opt.active');
+      settings[row.dataset.group] = active ? active.dataset.value : GEN_DEFAULTS[row.dataset.group];
+    });
+    overlay.classList.remove('open');
+    generateWithClaude(p, settings);
+  };
+}
+
+// ═══════════════════════════════════════════
 //  Generate with Claude (local server)
 // ═══════════════════════════════════════════
-async function generateWithClaude(p) {
+async function generateWithClaude(p, settings) {
   const btn   = document.getElementById('gen-btn');
   const label = document.getElementById('gen-label');
   btn.disabled=true; btn.className='gen-btn loading'; label.textContent='생성 중...';
@@ -539,7 +636,7 @@ async function generateWithClaude(p) {
     const resp = await fetch('http://localhost:3301/generate', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ folderName: p._folderName, images: p.allImages.slice(0,4) })
+      body: JSON.stringify({ folderName: p._folderName, images: p.allImages.slice(0,4), ...settings })
     });
     if (!resp.ok) { const e=await resp.json().catch(()=>({})); throw new Error(e.error||`오류 ${resp.status}`); }
     const r = await resp.json();
