@@ -245,7 +245,8 @@ async function scanRoot() {
   const IMG  = /\.(jpe?g|png|gif|webp)$/i;
   const detected = [];
 
-  for await (const [name, handle] of rootHandle.entries()) {
+  for await (const [rawName, handle] of rootHandle.entries()) {
+    const name = rawName.normalize('NFC');
     if (handle.kind !== 'directory' || SKIP.has(name) || name.startsWith('.')) continue;
     const imgs = [];
     await collectImages(handle, name, imgs, IMG);
@@ -278,7 +279,8 @@ async function scanRoot() {
 }
 
 async function collectImages(handle, prefix, results, EXT) {
-  for await (const [name, fh] of handle.entries()) {
+  for await (const [rawName, fh] of handle.entries()) {
+    const name = rawName.normalize('NFC');
     if (name.startsWith('.')) continue;
     if (fh.kind === 'file' && EXT.test(name)) {
       const path = prefix + '/' + name;
@@ -399,7 +401,7 @@ function renderEditor() {
       const [h] = await window.showOpenFilePicker({ multiple:false, types:[{description:'Image',accept:{'image/*':['.jpg','.jpeg','.png','.webp']}}] });
       const rel = await rootHandle.resolve(h);
       if (!rel) { alert('포트폴리오 폴더 안의 이미지를 선택해주세요.'); return; }
-      const path = rel.join('/');
+      const path = rel.map(s=>s.normalize('NFC')).join('/');
       if (!blobCache[path]) blobCache[path] = URL.createObjectURL(await h.getFile());
       if (!p._folderImages.includes(path)) p._folderImages.push(path);
       p.gridImage = path;
@@ -419,7 +421,7 @@ function renderEditor() {
       for (const h of handles) {
         const rel = await rootHandle.resolve(h);
         if (!rel) continue;
-        const path = rel.join('/');
+        const path = rel.map(s=>s.normalize('NFC')).join('/');
         if (!blobCache[path]) blobCache[path] = URL.createObjectURL(await h.getFile());
         if (!p._folderImages.includes(path)) p._folderImages.push(path);
         if (!p.allImages.includes(path)) p.allImages.push(path);
@@ -617,7 +619,7 @@ function buildProjectsJs(projects) {
   const items = projects.map(p => {
     const meta = p.meta.map(([k,v])=>`      ['${je(k)}','${je(v)}']`).join(',\n');
     const all  = p.allImages.map(img=>`      '${je(img)}'`).join(',\n');
-    const desc = (p.description||'').replace(/`/g,'\\`').replace(/\${/g,'\\${');
+    const desc = (p.description||'').normalize('NFC').replace(/`/g,'\\`').replace(/\${/g,'\\${');
     return `  {\n    id:'${je(p.id)}',\n    title:'${je(p.title)}',\n    category:'${je(p.category)}',\n    year:'${je(p.year)}',\n    description:\`${desc}\`,\n    meta:[\n${meta}\n    ],\n    gridImages:[\n      '${je(p.gridImage)}'\n    ],\n    allImages:[\n${all}\n    ]\n  }`;
   });
   return `const PROJECTS = [\n${items.join(',\n')}\n];`;
@@ -702,7 +704,7 @@ window.addEventListener('load', async () => {
 // ═══════════════════════════════════════════
 function proj() { return projects.find(x=>x.id===selectedId); }
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
-function je(s)  { return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function je(s)  { return (s||'').normalize('NFC').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 </script>
 </body>
 </html>
