@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko" style="background:#ffffff;color:#000000;">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>미도리작업실</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sidebar: 200px;
+      --line: #e0e0e0;
+    }
+
+    html {
+      color-scheme: light;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: #ffffff;
+      color: #000000;
+      font-family: 'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      font-weight: 500;
+      -webkit-font-smoothing: auto;
+    }
+
+    /* ─── LAYOUT ─── */
+    #layout {
+      display: flex;
+      height: 100vh;
+      background-color: #ffffff;
+    }
+
+    /* ─── SIDEBAR ─── */
+    #sidebar {
+      width: var(--sidebar);
+      min-width: var(--sidebar);
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 28px 24px 24px;
+      border-right: 1px solid var(--line);
+      overflow: hidden;
+      background-color: #ffffff;
+      z-index: 10;
+    }
+
+    .sidebar-brand { margin-bottom: 24px; }
+
+    .sidebar-section {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-section-title {
+      font-size: 10.5px;
+      font-weight: 500;
+      color: #000000;
+      margin-bottom: 6px;
+      letter-spacing: 0.01em;
+    }
+
+    .brand-name {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      line-height: 1.5;
+      display: block;
+      color: #000000;
+    }
+
+    .brand-tagline {
+      font-size: 10px;
+      color: #000000;
+      display: block;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .project-nav {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-item {
+      font-size: 10.5px;
+      font-weight: 500;
+      line-height: 1;
+      padding: 5px 0;
+      padding-left: 10px;
+      cursor: pointer;
+      color: #000000;
+      border: none;
+      background: none;
+      text-align: left;
+      font-family: inherit;
+      letter-spacing: 0.01em;
+    }
+
+    .sidebar-links {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-link {
+      font-size: 10.5px;
+      color: #000000;
+      padding: 4px 0;
+      transition: opacity 0.15s;
+      text-decoration: none;
+    }
+
+    .sidebar-link:hover { opacity: 0.5; }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-footer {
+      margin-top: 12px;
+      font-size: 9.5px;
+      color: #000000;
+    }
+
+    /* ─── CONTENT ─── */
+    #content {
+      flex: 1;
+      overflow: hidden;
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .image-grid {
+      display: flex;
+      gap: 12px;
+      padding: 20px;
+      flex: 1;
+      background-color: #ffffff;
+    }
+
+    .project-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      min-width: 0;
+    }
+
+
+    .col-label {
+      font-size: 10px;
+      color: #000000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      flex-shrink: 0;
+      transition: opacity 0.2s;
+    }
+
+    .col-img-wrap {
+      flex: 1;
+      overflow: hidden;
+      border-radius: 3px;
+      background-color: #eeeeee;
+    }
+
+    .col-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ─── DETAIL OVERLAY ─── */
+    #detail-overlay {
+      position: fixed;
+      top: 0;
+      left: var(--sidebar);
+      right: 0;
+      bottom: 0;
+      z-index: 100;
+      display: flex;
+      background-color: #ffffff;
+      transform: translateX(100%);
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      visibility: hidden;
+      border-left: 1px solid var(--line);
+    }
+
+    #detail-overlay.active {
+      transform: translateX(0);
+      visibility: visible;
+    }
+
+    /* Gallery */
+    .detail-gallery {
+      flex: 1;
+      overflow-y: auto;
+      background-color: #ffffff;
+    }
+
+    .detail-gallery::-webkit-scrollbar { width: 3px; }
+    .detail-gallery::-webkit-scrollbar-thumb { background: #cccccc; }
+
+    .dg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 20px 20px 48px;
+      background-color: #ffffff;
+    }
+
+    .dg-grid img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block;
+      border-radius: 2px;
+    }
+
+    .dg-grid img.hero {
+      grid-column: span 2;
+      aspect-ratio: 16/9;
+    }
+
+    .gallery-empty {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #cccccc;
+      font-size: 11px;
+    }
+
+    /* ─── INFO PANEL ─── */
+    .detail-info {
+      width: 310px;
+      min-width: 310px;
+      border-left: 1px solid var(--line);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      background-color: #ffffff;
+    }
+
+    .detail-info::-webkit-scrollbar { width: 3px; }
+    .detail-info::-webkit-scrollbar-thumb { background: #cccccc; }
+
+    .info-topbar {
+      display: flex;
+      justify-content: flex-end;
+      padding: 18px 20px 0;
+    }
+
+    .info-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #000000;
+      font-size: 10px;
+      font-family: inherit;
+      letter-spacing: 0.04em;
+      padding: 0;
+      transition: opacity 0.15s;
+    }
+
+    .info-close:hover { opacity: 0.4; }
+
+    .info-section {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .info-section:first-of-type {
+      margin-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .info-lbl {
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #000000;
+      margin-bottom: 8px;
+    }
+
+    .info-title {
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.35;
+      color: #000000;
+      letter-spacing: 0.01em;
+    }
+
+    .info-sub {
+      font-size: 10px;
+      color: #000000;
+      margin-top: 5px;
+      letter-spacing: 0.01em;
+    }
+
+    .info-desc {
+      font-size: 11px;
+      line-height: 1.95;
+      color: #000000;
+      letter-spacing: 0.01em;
+    }
+
+    .info-meta-table {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .info-meta-row {
+      display: flex;
+      gap: 10px;
+      font-size: 10.5px;
+      color: #000000;
+    }
+
+    .mk { min-width: 38px; flex-shrink: 0; }
+
+    .info-spacer { flex: 1; min-height: 20px; }
+
+    .info-foot {
+      padding: 16px 20px;
+      font-size: 9.5px;
+      color: #000000;
+    }
+  </style>
+</head>
+<body style="background:#ffffff;color:#000000;">
+
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-name">meedorri</span>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Project</div>
+      <nav class="project-nav" id="project-nav"></nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-section-title">Information</div>
+      <a class="sidebar-link" href="mailto:mdrlife22@gmail.com">Email</a>
+      <a class="sidebar-link" href="#" target="_blank">Instagram</a>
+      <div class="sidebar-footer">All Rights Reserved © 2025</div>
+    </div>
+  </aside>
+
+  <main id="content">
+    <div class="image-grid" id="image-grid"></div>
+  </main>
+</div>
+
+<div id="detail-overlay" aria-hidden="true">
+  <div class="detail-gallery" id="detail-gallery"></div>
+  <div class="detail-info" id="detail-info"></div>
+</div>
+
+<script>
+const PROJECTS = [
+  {
+    id:'시원스쿨',
+    title:'시원스쿨 LAB',
+    category:'Character Design / Illustration / Product Design',
+    year:'2020',
+    description:`온라인 교육 플랫폼 시원스쿨 LAB의 공식 마스코트 캐릭터 및 굿즈 디자인 프로젝트입니다. 헤드폰을 낀 귀여운 토마토 캐릭터를 중심으로 학습하는 즐거움과 성취감을 유머러스하게 표현했습니다.
+
+데스크 캘린더, 투명 스티커 등 다양한 실물 굿즈로 제작되어 수강생들에게 제공되었으며, '즐겨! 견뎌! 이겨!'라는 슬로건과 함께 브랜드 정체성을 일상 속 소품에 자연스럽게 녹여냈습니다.`,
+    meta:[
+      ['분류','캐릭터 디자인 / 굿즈 디자인'],
+      ['연도','2020'],
+      ['역할','캐릭터 디자인, 일러스트레이션, 굿즈 제작 디렉팅']
+    ],
+    gridImages:[
+      '시원스쿨/DSCF1097.jpg'
+    ],
+    allImages:[
+      '시원스쿨/DSCF1098.jpg',
+      '시원스쿨/DSCF1064.jpg',
+      '시원스쿨/DSCF1105.jpg',
+      '시원스쿨/DSCF1065.jpg',
+      '시원스쿨/DSCF1058.jpg',
+      '시원스쿨/DSCF1059.jpg',
+      '시원스쿨/DSCF1066.jpg',
+      '시원스쿨/DSCF1071.jpg',
+      '시원스쿨/DSCF1061.jpg'
+    ]
+  },
+  {
+    id:'상세페이지',
+    title:'상세페이지',
+    category:'',
+    year:'2024',
+    description:``,
+    meta:[
+      ['분류',''],
+      ['연도','2024'],
+      ['역할','']
+    ],
+    gridImages:[
+      '상세페이지/기타 소품/클리커/DSCF3503.jpg'
+    ],
+    allImages:[
+      '상세페이지/기타 소품/클리커/DSCF3503.jpg',
+      '상세페이지/기타 소품/클리커/DSCF3499.jpg',
+      '상세페이지/기타 소품/클리커/DSCF3528.jpg',
+      '상세페이지/기타 소품/클리커/DSCF3529.jpg',
+      '상세페이지/기타 소품/클리커/DSCF3501.jpg',
+      '상세페이지/기타 소품/클리커/DSCF3559.jpg',
+      '상세페이지/기타 소품/클리커/DSCF3502.jpg',
+      '상세페이지/기타 소품/클리커/DSCF3556.jpg',
+      '상세페이지/기타 소품/클리커/DSCF3558.jpg'
+    ]
+  },
+  {
+    id:'화사',
+    title:'화사 X 미도리작업실',
+    category:'Illustration / Product Design / Goods',
+    year:'2024',
+    description:`"귀여움은 모든 것을 이긴다"는 메시지를 중심으로 화사와 미도리작업실이 함께 기획한 굿즈 협업 프로젝트입니다. 토마토 캐릭터를 주인공으로 한 펠트 인형, 아크릴 키링, 일러스트 스티커 등 다양한 형태의 굿즈로 '귀여움'이라는 공통 언어를 시각적으로 구현했습니다.
+
+단순한 굿즈 제작을 넘어, 방문객이 직접 알약 캡슐에 자신의 표어를 적어 서로 교환하는 인터랙티브 체험 요소를 더해 참여형 전시의 성격을 가졌습니다. 귀엽고 따뜻한 무드 속에서 사람들이 서로의 마음을 나누는 경험을 디자인했습니다.`,
+    meta:[
+      ['분류','굿즈 디자인 / 일러스트'],
+      ['연도','2024'],
+      ['역할','캐릭터 일러스트, 굿즈 기획 및 디자인, 전시 연출']
+    ],
+    gridImages:[
+      '화사/DSCF2552.jpg'
+    ],
+    allImages:[
+      '화사/DSCF2552.jpg',
+      '화사/DSCF2546.jpg',
+      '화사/DSCF2624.jpg',
+      '화사/IMG_6288.jpg',
+      '화사/Frame 3.png',
+      '화사/DSCF2619.jpg',
+      '화사/DSCF2545.jpg',
+      '화사/DSCF2579.jpg',
+      '화사/DSCF2592.jpg'
+    ]
+  }
+];
+
+// ── Build sidebar nav ──
+const navEl = document.getElementById('project-nav');
+PROJECTS.forEach(p => {
+  const btn = document.createElement('button');
+  btn.className = 'nav-item';
+  btn.textContent = p.title;
+  btn.dataset.id = p.id;
+  btn.addEventListener('click', () => openProject(p));
+  navEl.appendChild(btn);
+});
+
+// ── Build image grid (3-col, 1 image per project) ──
+const gridEl = document.getElementById('image-grid');
+PROJECTS.forEach(p => {
+  const col = document.createElement('div');
+  col.className = 'project-col';
+  col.dataset.pid = p.id;
+
+  const label = document.createElement('div');
+  label.className = 'col-label';
+  label.innerHTML = `<span>${p.title}</span><span>↗</span>`;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'col-img-wrap';
+
+  const img = document.createElement('img');
+  img.src = p.gridImages[0];
+  img.alt = p.title;
+  img.className = 'col-img';
+  img.loading = 'eager';
+
+  wrap.appendChild(img);
+  col.appendChild(label);
+  col.appendChild(wrap);
+  col.addEventListener('click', () => openProject(p));
+  gridEl.appendChild(col);
+});
+
+
+// ── Open project ──
+function openProject(p) {
+  document.querySelectorAll('.nav-item').forEach(b =>
+    b.classList.toggle('active', b.dataset.id === p.id)
+  );
+
+  const gallery = document.getElementById('detail-gallery');
+  gallery.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'dg-grid';
+  p.allImages.forEach((src, i) => {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = p.title;
+    img.loading = i < 2 ? 'eager' : 'lazy';
+    if (i === 0) img.classList.add('hero');
+    grid.appendChild(img);
+  });
+  gallery.appendChild(grid);
+
+  const info = document.getElementById('detail-info');
+  const descHtml = p.description
+    .split(/\n\n/)
+    .map(para => `<p style="margin-bottom:12px">${para.trim()}</p>`)
+    .join('');
+
+  info.innerHTML = `
+    <div class="info-topbar">
+      <button class="info-close" id="close-btn">닫기 ✕</button>
+    </div>
+    <div class="info-section">
+      <div class="info-lbl">Project</div>
+      <div class="info-title">${p.title}</div>
+      <div class="info-sub">${p.year} · ${p.category}</div>
+    </div>
+    <div class="info-section">
+      <div class="info-lbl">Overview</div>
+      <div class="info-desc">${descHtml}</div>
+    </div>
+    <div class="info-section">
+      <div class="info-lbl">Details</div>
+      <div class="info-meta-table">
+        ${p.meta.map(([k, v]) => `
+          <div class="info-meta-row">
+            <span class="mk">${k}</span>
+            <span>${v}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="info-spacer"></div>
+    <div class="info-foot">미도리작업실 · Seoul</div>
+  `;
+
+  document.getElementById('close-btn').addEventListener('click', closeProject);
+  document.getElementById('detail-overlay').classList.add('active');
+  document.getElementById('detail-overlay').setAttribute('aria-hidden', 'false');
+}
+
+function closeProject() {
+  document.getElementById('detail-overlay').classList.remove('active');
+  document.getElementById('detail-overlay').setAttribute('aria-hidden', 'true');
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProject(); });
+</script>
+</body>
+</html>
