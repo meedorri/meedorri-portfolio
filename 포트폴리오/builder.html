@@ -241,12 +241,12 @@ async function openFolder(handle) {
 }
 
 async function scanRoot() {
-  const SKIP = new Set(['index.html','builder.html','generate_server.py','start.sh','install.sh','.DS_Store','projects-data.json']);
+  const SKIP = new Set(['index.html','builder.html','generate_server.py','ai-server.py','start.sh','install.sh','.DS_Store','projects-data.json','상세페이지_조립기.html','정산관리.html']);
   const IMG  = /\.(jpe?g|png|gif|webp)$/i;
   const detected = [];
 
   for await (const [name, handle] of rootHandle.entries()) {
-    if (handle.kind !== 'directory' || SKIP.has(name)) continue;
+    if (handle.kind !== 'directory' || SKIP.has(name) || name.startsWith('.')) continue;
     const imgs = [];
     await collectImages(handle, name, imgs, IMG);
     detected.push({ id: name, _folderName: name, _folderImages: imgs });
