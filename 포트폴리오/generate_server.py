@@ -4,20 +4,28 @@ meedorri Generate Server — port 3301
 claude CLI를 사용합니다. API 키 불필요.
 """
 
-import os, json, re, subprocess
+import os, json, re, glob, subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
 PORT   = 3301
 FOLDER = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(FOLDER)  # 포트폴리오/ 의 상위 = git 저장소 루트
+COPY_WIKI = os.path.join(REPO_ROOT, 'copy-wiki')  # 목소리 위키 (raw/wiki)
 CLAUDE = os.path.expanduser('~/.local/bin/claude')  # claude CLI 경로
 GIT    = '/usr/bin/git'
 
-PROMPT_TEMPLATE = """{image_refs}
+PROMPT_TEMPLATE = """{voice_rules}
+
+## 실제 목소리 예시 (few-shot — 문체 패턴만 참고. 그대로 베끼거나 문장을 재사용하지 말 것)
+{few_shot}
+
+---
+
+{image_refs}
 
 위 사진들은 "미도리작업실(meedorri)" 브랜드의 "{folder_name}" 프로젝트입니다.
-사진을 보고 포트폴리오 상세 페이지용 콘텐츠를 아래 JSON 형식으로 작성해주세요.
+사진을 보고, 위 목소리 규칙과 예시의 문체 패턴을 참고해서 포트폴리오 상세 페이지용 콘텐츠를 아래 JSON 형식으로 작성해주세요.
 다른 설명 없이 JSON만 반환하세요.
 
 {{
@@ -31,6 +39,22 @@ PROMPT_TEMPLATE = """{image_refs}
     ["역할", "미도리작업실이 맡은 역할 (한국어)"]
   ]
 }}"""
+
+
+def load_voice_context():
+    """wiki/voice-rules.md 전체 + raw/voice-personal*.md few-shot 예시를 읽어온다."""
+    rules_path = os.path.join(COPY_WIKI, 'wiki', 'voice-rules.md')
+    rules = ''
+    if os.path.exists(rules_path):
+        with open(rules_path, encoding='utf-8') as f:
+            rules = f.read().strip()
+
+    examples = []
+    for path in sorted(glob.glob(os.path.join(COPY_WIKI, 'raw', 'voice-personal*.md'))):
+        with open(path, encoding='utf-8') as f:
+            examples.append(f.read().strip())
+
+    return rules, '\n\n'.join(examples)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -115,7 +139,11 @@ def generate(data):
     if not refs:
         raise ValueError('사용 가능한 이미지가 없습니다.')
 
+    voice_rules, few_shot = load_voice_context()
+
     prompt = PROMPT_TEMPLATE.format(
+        voice_rules=voice_rules or '(voice-rules.md 없음)',
+        few_shot=few_shot or '(few-shot 예시 없음)',
         image_refs='\n'.join(refs),
         folder_name=folder_name
     )
