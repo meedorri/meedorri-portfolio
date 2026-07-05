@@ -250,6 +250,7 @@ async function scanRoot() {
     if (handle.kind !== 'directory' || SKIP.has(name) || name.startsWith('.')) continue;
     const imgs = [];
     await collectImages(handle, name, imgs, IMG);
+    if (!imgs.length) continue; // 이미지 없는 폴더(노트, 설정 등)는 프로젝트로 취급하지 않음
     detected.push({ id: name, _folderName: name, _folderImages: imgs });
   }
 
